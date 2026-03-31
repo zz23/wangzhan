@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>互动卡片</title>
+<style>
+body{
+  margin:0;
+  font-family:-apple-system,BlinkMacSystemFont;
+  background:linear-gradient(135deg,#fdf6f0,#fde2e4);
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  height:100vh;
+}
+
+.home{
+  text-align:center;
+}
+
+.start-btn{
+  padding:18px 40px;
+  font-size:20px;
+  border:none;
+  border-radius:30px;
+  background:linear-gradient(135deg,#ff8fab,#6d7cff);
+  color:#fff;
+}
+
+.top{
+  position:fixed;
+  top:20px;
+  left:20px;
+}
+
+.back{
+  padding:8px 16px;
+  border:none;
+  border-radius:20px;
+  background:#fff;
+}
+
+.card{
+  width:85%;
+  max-width:380px;
+  height:420px;
+  background:#fff;
+  border-radius:20px;
+  box-shadow:0 10px 30px rgba(0,0,0,0.1);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+  padding:20px;
+  font-size:22px;
+  overflow:hidden;
+  flex-shrink:0;
+}
+
+.btn{
+  margin-top:20px;
+  padding:14px 30px;
+  border:none;
+  border-radius:25px;
+  background:linear-gradient(135deg,#ff8fab,#6d7cff);
+  color:#fff;
+  font-size:16px;
+}
+
+.hidden{display:none}
+</style>
+</head>
+
+<body>
+
+<div class="top hidden" id="top">
+  <button class="back" onclick="goHome()">返回</button>
+</div>
+
+<div class="home" id="home">
+  <button class="start-btn" onclick="start()">开始互动</button>
+</div>
+
+<div id="game" class="hidden">
+  <div class="card" id="card">点击开始</div>
+  <div style="display:flex;align-items:center;gap:12px;margin-top:20px;">
+  <span id="counter">1 / 100</span>
+  <button class="btn" onclick="next()">回答 / 下一题</button>
+</div>
+</div>
+
+<script>
+
+let currentIndex=0;
+const total=100;
+const questions=[
+"你平时最放松的那一刻通常是在什么情况下？",
+"你更享受‘完全属于自己的一段时间’还是‘和熟人待在一起’？",
+"你觉得一个人待着舒服，是天生的还是慢慢形成的？",
+"你最近有没有哪一刻觉得‘这样其实挺好的’？",
+"你平时是靠什么方式恢复精力的？",
+"你更喜欢慢一点的生活节奏还是偶尔有变化？",
+"你有没有发现自己其实挺习惯现在这种生活方式？",
+"你觉得真正的放松是‘什么都不做’还是‘做喜欢的事’？",
+"你平时更容易被环境影响，还是更坚持自己的节奏？",
+"你会不会有那种不想被打扰的时刻？",
+"你觉得独处的时候更接近真实的自己吗？",
+"你平时更喜欢安静的空间还是稍微有点人气的地方？",
+"你有没有一段时间特别想躲开外界？",
+"你觉得自己更像‘慢慢进入状态的人’吗？",
+"你平时会刻意安排放松时间吗？",
+"你觉得你现在的生活状态是你自己选的吗？",
+"你更喜欢‘稳定重复’还是‘偶尔变化’？",
+"你最近有没有突然觉得某件事其实没那么重要？",
+"你更在意舒服还是效率？",
+"你会不会更喜欢简单一点的生活方式？",
+"你觉得慢热的人是不是更容易想很多？",
+"你一般需要多久才会对一个人放松下来？",
+"你会更在意别人理解你还是给你空间？",
+"你有没有那种一开始没感觉后来慢慢觉得不错的人？",
+"你觉得熟起来慢一点是不是反而更稳定？",
+"你会不会在关系里比较谨慎？",
+"你更喜欢自然熟起来还是一开始就很热络？",
+"你觉得舒服的相处是不是不用刻意找话题？",
+"你会不会更倾向先观察再决定？",
+"你觉得自己更理性还是更感性？",
+"你会不会不太习惯表达自己？",
+"你更喜欢被问还是主动说？",
+"你觉得慢慢建立信任更重要吗？",
+"你会不会对新关系有一点防备？",
+"你觉得节奏一致重要吗？",
+"你更喜欢稳定的人还是有变化的人？",
+"你会不会在意别人怎么看你？",
+"你觉得‘被理解’是不是挺难的？",
+"你有没有那种别人觉得你安静但你其实想很多的时候？",
+"你更倾向于慢慢了解一个人吗？",
+"你觉得聊天舒服比内容重要吗？",
+"你会不会更在意感觉而不是逻辑？",
+"你觉得自己是那种需要时间的人吗？",
+"你会不会不太喜欢被打扰节奏？",
+"你觉得关系里最难的是开始还是维持？",
+"你更看重过程还是结果？",
+"你会不会更容易和某一类人聊得来？",
+"你觉得慢慢靠近是不是更自然？",
+"你会不会在熟之前比较克制？",
+"你觉得安全感是慢慢来的还是一下就有的？",
+"你说你容易被影响，你现在会怎么判断什么是自己的想法？",
+"你有没有那种‘我好像不太像自己’的阶段？",
+"你觉得做自己更难的是看清自己还是坚持自己？",
+"你会不会有时候觉得选择其实不是自己做的？",
+"你现在会更相信自己还是外界？",
+"你有没有慢慢找回自己的过程？",
+"你觉得人会不会被环境改变很多？",
+"你有没有意识到自己和以前不一样了？",
+"你觉得自己现在更接近真实状态了吗？",
+"你会不会有时候想把外界声音关掉？",
+"你觉得影响你最大的东西是什么？",
+"你有没有重新思考过一些以前的想法？",
+"你现在做决定会更谨慎吗？",
+"你觉得‘做自己’是一种能力吗？",
+"你会不会觉得有时候太容易被带节奏？",
+"你有没有某一刻突然很清醒？",
+"你觉得真正的自己是稳定的吗？",
+"你会不会更希望以后少被影响？",
+"你有没有慢慢建立自己的判断？",
+"你觉得改变自己难吗？",
+"你会不会更珍惜现在的状态？",
+"你觉得一个人最重要的是清醒还是坚定？",
+"你有没有怀疑过自己的选择？",
+"你觉得成长是不是意味着更了解自己？",
+"你会不会觉得有些选择是‘不得不’？",
+"你现在会更关注内心还是外界？",
+"你有没有慢慢变得更有主见？",
+"你觉得一个人什么时候最像自己？",
+"你会不会觉得有时候安静下来更真实？",
+"你觉得未来的自己会更坚定吗？",
+"你觉得我们现在相处是轻松还是需要适应？",
+"你会更喜欢现在这种节奏还是慢一点？",
+"你觉得我们聊天是自然的吗？",
+"你会更喜欢见面还是慢慢聊天？",
+"你觉得我们更像在了解还是已经有点熟？",
+"你会不会觉得我们相处还挺轻松？",
+"你觉得我是哪种节奏的人？",
+"你会不会更喜欢慢慢变熟的关系？",
+"你觉得我们现在的状态舒服吗？",
+"你会期待下一次见面吗？",
+"你觉得我们有没有一些相似的地方？",
+"你会不会觉得我们聊天还算顺？",
+"你觉得我们更像朋友还是在发展？",
+"你会不会觉得继续了解是自然的？",
+"你觉得我们有没有需要适应的地方？",
+"你会不会觉得我们节奏还挺合适？",
+"你觉得关系里最重要的是感觉还是稳定？",
+"你会不会更喜欢慢一点推进？",
+"你觉得我们这种方式是不是比较舒服？",
+"你会不会愿意慢慢多见几次？",
+];
+
+function start(){
+  document.getElementById("home").classList.add("hidden");
+  document.getElementById("game").classList.remove("hidden");
+  document.getElementById("top").classList.remove("hidden");
+  next();
+}
+
+// 初始化时确保只显示首页
+window.onload = function(){
+  document.getElementById("home").classList.remove("hidden");
+  document.getElementById("game").classList.add("hidden");
+  document.getElementById("top").classList.add("hidden");
+}
+
+function goHome(){
+  document.getElementById("home").classList.remove("hidden");
+  document.getElementById("game").classList.add("hidden");
+  document.getElementById("top").classList.add("hidden");
+}
+
+function next(){
+  if(currentIndex>=total){
+    goHome();
+    currentIndex=0;
+    return;
+  }
+
+  const q=questions[Math.floor(Math.random()*questions.length)];
+  document.getElementById("card").innerText=q;
+
+  currentIndex++;
+  document.getElementById("counter").innerText=currentIndex + " / " + total;
+}
+
+</script>
+
+</body>
+</html>
