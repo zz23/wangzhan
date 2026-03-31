@@ -6,6 +6,8 @@
 <title>互动卡片</title>
 
 <style>
+
+/* 🌸 默认（正式模式） */
 body{
   margin:0;
   font-family:-apple-system,"PingFang SC","Noto Sans SC",sans-serif;
@@ -15,14 +17,27 @@ body{
   animation:bgMove 12s ease infinite;
 }
 
-/* 🌸 背景流动 */
+/* 🎲 随机模式 */
+body.random{
+  background:linear-gradient(270deg,#ffe4ec,#e0c3fc,#fbc2eb);
+  background-size:400% 400%;
+  animation:bgMove 8s ease infinite;
+}
+
+/* 🧪 测试模式 */
+body.test{
+  background:linear-gradient(270deg,#f5f5f5,#e0e0e0,#f0f0f0);
+  background-size:400% 400%;
+  animation:bgMove 14s ease infinite;
+}
+
 @keyframes bgMove{
   0%{ background-position:0% 50%;}
   50%{ background-position:100% 50%;}
   100%{ background-position:0% 50%;}
 }
 
-/* 光晕 */
+/* 光晕（随模式变化） */
 body::before{
   content:"";
   position:fixed;
@@ -36,13 +51,21 @@ body::before{
   animation:lightMove 18s ease-in-out infinite;
 }
 
+body.random::before{
+  background:radial-gradient(circle,#e0bbff,transparent);
+}
+
+body.test::before{
+  background:radial-gradient(circle,#cccccc,transparent);
+}
+
 @keyframes lightMove{
   0%{ transform:translate(0,0);}
   50%{ transform:translate(40px,30px);}
   100%{ transform:translate(0,0);}
 }
 
-/* 居中 */
+/* 布局 */
 .container{
   min-height:100vh;
   display:flex;
@@ -52,7 +75,6 @@ body::before{
   padding:20px;
 }
 
-/* 首页 */
 .home{
   height:100vh;
   display:flex;
@@ -61,9 +83,7 @@ body::before{
 }
 
 /* 按钮 */
-button{
-  touch-action:manipulation;
-}
+button{ touch-action:manipulation; }
 
 .start-btn{
   padding:16px 36px;
@@ -74,6 +94,15 @@ button{
   color:#fff;
 }
 .start-btn:active{ transform:scale(0.95); }
+
+.test-btn{
+  padding:10px 22px;
+  font-size:14px;
+  border:none;
+  border-radius:20px;
+  background:rgba(0,0,0,0.1);
+  color:#555;
+}
 
 /* 卡片 */
 .card{
@@ -92,7 +121,6 @@ button{
   text-align:center;
 
   padding:28px 22px;
-
   font-size:20px;
   line-height:1.6;
 
@@ -132,9 +160,8 @@ button{
   background:linear-gradient(135deg,#ff8fab,#6d7cff);
   color:#fff;
 }
-.btn:active{ transform:scale(0.95); }
 
-/* 💗 爱心 */
+/* 💗 */
 .heart{
   position:absolute;
   font-size:16px;
@@ -162,17 +189,14 @@ button{
 
 <body>
 
-<!-- 首页 -->
 <div class="home" id="home">
-  <div style="display:flex;flex-direction:column;gap:16px;">
-    <button class="start-btn" onclick="start(false)">开始互动</button>
-    <button class="start-btn" onclick="start(true)" style="opacity:0.85;">
-      🎲 随机模式
-    </button>
+  <div style="display:flex;flex-direction:column;gap:16px;align-items:center;">
+    <button class="start-btn" onclick="start('normal')">开始互动</button>
+    <button class="start-btn" onclick="start('random')" style="opacity:0.85;">🎲 随机模式</button>
+    <button class="test-btn" onclick="start('test')">🧪 测试</button>
   </div>
 </div>
 
-<!-- 游戏 -->
 <div class="container hidden" id="game">
   <div class="card" id="card">
     <div id="question">点击开始</div>
@@ -189,12 +213,10 @@ button{
 <script>
 
 let currentIndex = 0;
-let isRandomMode = false;
-
-const firstQuestion = "你最近有没有一刻，是觉得“这样其实挺舒服的”？";
+let mode = "normal";
 
 const questions = [
-"最近有没有一件小事，让你突然觉得挺舒服的？",
+  "最近有没有一件小事，让你突然觉得挺舒服的？",
 "下班以后，通常最想先进入哪种状态？",
 "有时候安静下来，你会更容易想清楚事情吗？",
 "说到真正放松的时候，脑子里一般会先冒出什么画面？",
@@ -293,10 +315,79 @@ const questions = [
 "如果“像自己”这件事有一个答案，你觉得它更接近什么状态？",
 "未来一段时间，你最想让自己多一点什么？"
 ];
+const testQuestions = [
+"你平时最放松的那一刻通常是在什么情况下？",
+"你更享受‘完全属于自己的一段时间’还是‘和熟人待在一起’？",
+"你觉得一个人待着舒服，是天生的还是慢慢形成的？",
+"你最近有没有哪一刻觉得‘这样其实挺好的’？",
+"你平时是靠什么方式恢复精力的？",
+"你更喜欢慢一点的生活节奏还是偶尔有变化？",
+"你有没有发现自己其实挺习惯现在这种生活方式？",
+"你觉得真正的放松是‘什么都不做’还是‘做喜欢的事’？",
+"你平时更容易被环境影响，还是更坚持自己的节奏？",
+"你会不会有那种不想被打扰的时刻？",
+"你觉得独处的时候更接近真实的自己吗？",
+"你平时更喜欢安静的空间还是稍微有点人气的地方？",
+"你有没有一段时间特别想躲开外界？",
+"你觉得自己更像‘慢慢进入状态的人’吗？",
+"你平时会刻意安排放松时间吗？",
+"你觉得你现在的生活状态是你自己选的吗？",
+"你更喜欢‘稳定重复’还是‘偶尔变化’？",
+"你最近有没有突然觉得某件事其实没那么重要？",
+"你更在意舒服还是效率？",
+"你会不会更喜欢简单一点的生活方式？",
+"你觉得慢热的人是不是更容易想很多？",
+"你一般需要多久才会对一个人放松下来？",
+"你会更在意别人理解你还是给你空间？",
+"你有没有那种一开始没感觉后来慢慢觉得不错的人？",
+"你觉得熟起来慢一点是不是反而更稳定？",
+"你会不会在关系里比较谨慎？",
+"你更喜欢自然熟起来还是一开始就很热络？",
+"你觉得舒服的相处是不是不用刻意找话题？",
+"你会不会更倾向先观察再决定？",
+"你觉得自己更理性还是更感性？",
+"你会不会不太习惯表达自己？",
+"你更喜欢被问还是主动说？",
+"你觉得慢慢建立信任更重要吗？",
+"你会不会对新关系有一点防备？",
+"你觉得节奏一致重要吗？",
+"你更喜欢稳定的人还是有变化的人？",
+"你会不会在意别人怎么看你？",
+"你觉得‘被理解’是不是挺难的？",
+"你有没有那种别人觉得你安静但你其实想很多的时候？",
+"你更倾向于慢慢了解一个人吗？",
+"你觉得聊天舒服比内容重要吗？",
+"你会不会更在意感觉而不是逻辑？",
+"你觉得自己是那种需要时间的人吗？",
+"你会不会不太喜欢被打扰节奏？",
+"你觉得关系里最难的是开始还是维持？",
+"你更看重过程还是结果？",
+"你会不会更容易和某一类人聊得来？",
+"你觉得慢慢靠近是不是更自然？",
+"你会不会在熟之前比较克制？",
+"你觉得安全感是慢慢来的还是一下就有的？",
+"你说你容易被影响，你现在会怎么判断什么是自己的想法？",
+"你有没有那种‘我好像不太像自己’的阶段？",
+"你觉得做自己更难的是看清自己还是坚持自己？",
+"你会不会有时候觉得选择其实不是自己做的？",
+"你现在会更相信自己还是外界？",
+"你有没有慢慢找回自己的过程？",
+"你觉得人会不会被环境改变很多？",
+"你有没有意识到自己和以前不一样了？",
+"你觉得自己现在更接近真实状态了吗？",
+"你会不会有时候想把外界声音关掉？",
+"你觉得影响你最大的东西是什么？",];
 
-/* 🐶 开场 */
-function start(random){
-  isRandomMode = random;
+function start(m){
+
+  mode = m;
+  currentIndex = 0;
+
+  /* 🎯 切换背景主题 */
+  document.body.classList.remove("random","test");
+
+  if(mode === "random") document.body.classList.add("random");
+  if(mode === "test") document.body.classList.add("test");
 
   const dog = document.getElementById("dog");
   dog.classList.remove("hidden");
@@ -309,7 +400,6 @@ function start(random){
   },600);
 }
 
-/* 💗 */
 function showHearts(){
   const container = document.getElementById("controls");
 
@@ -326,20 +416,17 @@ function showHearts(){
   }
 }
 
-/* 取题 */
 function getQuestion(){
 
-  if(isRandomMode){
+  if(mode === "random"){
     return questions[Math.floor(Math.random()*questions.length)];
   }
 
-  if(currentIndex === 0) return firstQuestion;
-
-  if(currentIndex-1 < questions.length){
-    return questions[currentIndex-1];
+  if(mode === "test"){
+    return testQuestions[currentIndex] || "测试结束";
   }
 
-  return "今天先到这里～下次继续 😄";
+  return questions[currentIndex] || "今天先到这里～";
 }
 
 function next(){
@@ -352,12 +439,7 @@ function next(){
   card.classList.add("slide-out");
 
   setTimeout(()=>{
-    qEl.style.opacity = 0;
-
-    const q = getQuestion();
-    qEl.innerText = q;
-
-    setTimeout(()=>{ qEl.style.opacity = 1; },50);
+    qEl.innerText = getQuestion();
 
     card.classList.remove("slide-out");
     card.classList.add("slide-in");
