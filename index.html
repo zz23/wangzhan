@@ -227,6 +227,7 @@ body.test .action-btn{
 </div>
 
 <script>
+let finished = false;
 let index=0;
 let mode="normal";
 
@@ -341,6 +342,7 @@ const testQuestions=[
 function start(m){
   mode=m;
   index=0;
+  finished=false;
   document.body.className=m;
 
   document.getElementById("home").style.opacity="0";
@@ -348,7 +350,10 @@ function start(m){
   setTimeout(()=>{
     document.getElementById("home").style.display="none";
     document.getElementById("game").classList.add("show");
-    next();
+
+    document.getElementById("question").innerText = getQuestion();
+    document.getElementById("counter").innerText = "1 / " + (mode==="test" ? testQuestions.length : questions.length);
+
   },200);
 }
 
@@ -365,9 +370,9 @@ function getQuestion(){
     return questions[Math.floor(Math.random()*questions.length)];
   }
   if(mode==="test"){
-    return testQuestions[index % testQuestions.length];
+    return testQuestions[index];
   }
-  return questions[index % questions.length];
+  return questions[index];
 }
 
 function hearts(){
@@ -386,16 +391,54 @@ function hearts(){
 function next(){
   hearts();
 
-  document.getElementById("question").innerText=getQuestion();
+  let max = mode === "test" ? testQuestions.length : questions.length;
 
-  if(mode!=="random"){
-    index++;
-    document.getElementById("counter").innerText=index+" / 100";
-  }else{
-    document.getElementById("counter").innerText="随机";
+  // ❗如果已经结束，直接不动
+  if(finished){
+    return;
   }
+
+  // ❗当前已经是最后一题（第90题）
+  if(index === max - 1){
+    playMusic();
+    finished = true;   // 锁死
+    return;
+  }
+
+  // 正常下一题
+  index++;
+  if(index === max - 1){
+  document.querySelector(".action-btn").innerText = "结束也是开始";
+  }
+  document.getElementById("question").innerText = getQuestion();
+  document.getElementById("counter").innerText = (index+1) + " / " + max;
+}
+
+let songs = [
+  "song1.mp3",
+  "song2.mp3",
+  "song3.mp3"
+];
+
+let audio = new Audio();
+let currentSong = 0;
+
+function playMusic(){
+  currentSong = 0;
+  audio.src = songs[currentSong];
+
+  audio.play().catch(()=>{
+    console.log("播放被拦截");
+  });
+
+  audio.onended = function(){
+    currentSong++;
+    if(currentSong < songs.length){
+      audio.src = songs[currentSong];
+      audio.play();
+    }
+  };
 }
 </script>
-
 </body>
 </html>
